@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/pysc2.iml" filepath="$PROJECT_DIR$/.idea/pysc2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../pysc2project/.idea/pysc2project.iml" filepath="$PROJECT_DIR$/../pysc2project/.idea/pysc2project.iml" />
     </modules>
   </component>
 </project>

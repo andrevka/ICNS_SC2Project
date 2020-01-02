@@ -24,18 +24,18 @@ def evaluate(game):
 
 
 # 0: Do nothing
-# 1: Move camera (1)
-# 2: select_control_group (4)
-# 3: Move (16)
-# 4: MovePatrol (17)
-# 5: MoveHoldPosition (18)
-# 6: attack (23)
+# 1: select_control_group (4)
+# 2: Move (16)
+# 3: MovePatrol (17)
+# 4: MoveHoldPosition (18)
+# 5: attack (23)
 
 def get_training_data_from_file(file, scoreThreshold):
     with open(file) as json_file:
         data = json.load(json_file)
         x = []
         y = []
+        y2 = []
         for game in data:
             # some replays seemed to be bugged
             if len(game) == 0 or len(game[0]['units']) < 3:
@@ -50,30 +50,31 @@ def get_training_data_from_file(file, scoreThreshold):
                 x.append(getInputDataFromIteration(iteration))
 
                 # OUTPUTS
-                actions = [0] * 7
+                actions = [0] * 6
                 a = iteration['actions']
                 if len(a) > 0:
                     action_id = a[0]['ability_id']
                     if action_id == 0:  # Do nothing
                         actions[0] = 1
-                    elif action_id == 1:  # Move camera
-                        actions[1] = 1
                     elif action_id == 4:  # Select control group
-                        actions[2] = 1
+                        actions[1] = 1
                     elif action_id == 16:  # Move
-                        actions[3] = 1
+                        actions[2] = 1
                     elif action_id == 17:  # Move patrol
-                        actions[4] = 1
+                        actions[3] = 1
                     elif action_id == 18:  # Move hold position
-                        actions[5] = 1
+                        actions[4] = 1
                     elif action_id == 23:  # attack
-                        actions[6] = 1
+                        actions[5] = 1
+                    y2.append(np.asarray([a[0]['x'], a[0]['y']], dtype=np.dtype(np.float32)))
                 else:
                     actions[0] = 1
+                    y2.append(np.asarray([0, 0], dtype=np.dtype(np.float32)))
                 y.append(actions)
+
         x = np.asarray(x)
         y = np.asarray(y)
-        return x, y
+        return x, y, y2
 
 
 def getInputDataFromIteration(iteration):

@@ -37,42 +37,48 @@ class TestAgent(base_agent.BaseAgent):
             raise Exception(
                 "This agent requires the feature_units observation. Use flag '--use_feature_units' to enable feature units")
         self.gameloop = 0
-        self.model = Sc2Network("model")
-        self.model.model.summary()
-
+        self.model = Sc2Network("model.h5")
+        #self.model.model.summary()
 
     def step(self, obs):
         super(TestAgent, self).step(obs)
         self.gameloop += 1
         avb = obs.observation.available_actions
+
         X = self._get_unit_data(obs)
-        function_id, args = self._translateOutputToAction(self.model.predict(X)[0])
+        y = self.model.predict(X)
+        function_id, args = self._translateOutputToAction(y, avb)
         """
         function_id = np.random.choice(avb)
-        
+
         args = [[np.random.randint(0, size) for size in arg.sizes]
                 for arg in self.action_spec.functions[function_id].args]
-                """
+        """
         print(function_id, args)
         return actions.FunctionCall(function_id, args)
 
-    def _translateOutputToAction(self, y):
+    def _translateOutputToAction(self, y, avb_actions):
         f_id = 0
-        if y[1] == 1:
-            f_id = 1
-        elif y[2] == 1:
-            f_id = 4
-        elif y[3] == 1:
-            f_id = 16
-        elif y[4] == 1:
-            f_id = 17
-        elif y[5] == 1:
-            f_id = 18
-        elif y[6] == 1:
-            f_id = 23
+        a = y[0][0]
 
-        args = [[np.random.randint(0, size) for size in arg.sizes]
-                for arg in self.action_spec.functions[f_id].args]
+        if a[1] == 1:
+            f_id = 4
+        elif a[2] == 1:
+            f_id = 331
+        elif a[3] == 1:
+            f_id = 333
+        elif a[4] == 1:
+            f_id = 567
+        elif a[5] == 1:
+            f_id = 12
+
+        if f_id not in avb_actions:
+            f_id = 0
+
+        if f_id == 0:
+            args = []
+        else:
+            args = [[1], y[1][0]]
 
         return f_id, args
 
@@ -90,4 +96,3 @@ class TestAgent(base_agent.BaseAgent):
         x.append(self.gameloop)
         x.append(len(marines))
         return np.asarray([x], dtype=np.dtype(np.float32))
-

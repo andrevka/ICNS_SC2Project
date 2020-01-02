@@ -1,12 +1,6 @@
 import json
 import numpy as np
 
-def _putUnitDataIntoList(unit):
-    # might also need to add ability x,y
-    if len(unit['orders']) == 0:
-        return [unit['health'], unit['is_active'], unit['x'], unit['y'], 0]
-    return [unit['health'], unit['is_active'], unit['x'], unit['y'], unit['orders'][0]['ability_id']]
-
 
 # calculates a score based on the last game_loop
 # TODO: improve score calculation
@@ -27,7 +21,6 @@ def evaluate(game):
 # 50-105: enemy units
 # 106: game_loop
 # 107: army_count
-# 108: score
 
 
 # 0: Do nothing
@@ -53,31 +46,8 @@ def get_training_data_from_file(file, scoreThreshold):
                 continue
 
             for iteration in game:
-                # INPUTS
-                # adding units
-                PlayerUnits = []
-                EnemyUnits = []
 
-                for unit in iteration['units']:
-                    if unit['owner'] == 1:
-                        PlayerUnits += _putUnitDataIntoList(unit)
-                    else:
-                        EnemyUnits += _putUnitDataIntoList(unit)
-
-                # adding padding to the units
-                for i in range(len(PlayerUnits), 5 * 10):
-                    PlayerUnits.append(0)
-
-                for i in range(len(EnemyUnits), 5 * 11):
-                    EnemyUnits.append(0)
-
-                # adding match info
-                frameInfo = PlayerUnits + EnemyUnits
-                frameInfo.append(iteration["game_loop"])
-                frameInfo.append(iteration["army_count"])
-                frameInfo.append(score)
-
-                x.append(frameInfo)
+                x.append(getInputDataFromIteration(iteration))
 
                 # OUTPUTS
                 actions = [0] * 7
@@ -104,3 +74,44 @@ def get_training_data_from_file(file, scoreThreshold):
         x = np.asarray(x)
         y = np.asarray(y)
         return x, y
+
+
+def getInputDataFromIteration(iteration):
+    pUnits = _getUnitsOnSide(iteration['units'],1)
+    eUnits = _getUnitsOnSide(iteration['units'],2)
+    frameInfo = getUnitsData(pUnits, 10, False) + getUnitsData(eUnits, 11, False)
+    frameInfo.append(iteration["game_loop"])
+    frameInfo.append(iteration["army_count"])
+    return frameInfo
+
+# size: max number of player units. will add padding if actual number of units is less
+# put_data_method: to read from file(0) or from feature_units(1)
+def getUnitsData(units, size, feature_units = False):
+    u = []
+    for unit in units:
+        if not feature_units:
+            u += _putUnitDataIntoListTrain(unit)
+        else:
+            u += _putUnitDataIntoListInAI(unit)
+    for i in range(len(u), 5 * size):
+        u.append(0)
+    return u
+
+
+def _getUnitsOnSide(units, side):
+    u = []
+    for i in units:
+        if i['alliance'] == side:
+            u.append(i)
+    return u
+
+def _putUnitDataIntoListTrain(unit):
+    # might also need to add ability x,y
+    if len(unit['orders']) == 0:
+        return [unit['health'], unit['is_active'], unit['x'], unit['y'], 0]
+    return [unit['health'], unit['is_active'], unit['x'], unit['y'], unit['orders'][0]['ability_id']]
+
+def _putUnitDataIntoListInAI(unit):
+    if unit['order_length'] == 0:
+        return [unit['health'], unit['active'], unit['x'], unit['y'], 0]
+    return [unit['health'], unit['active'], unit['x'], unit['y'], unit['order_id_0']]

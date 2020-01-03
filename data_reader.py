@@ -13,7 +13,7 @@ def evaluate(game):
             pUnits += 1
         else:
             eUnits += 1
-    return 5 * (10 - eUnits) + 5 * pUnits
+    return 5 * (10 - eUnits) #+ 1 * pUnits
 
 
 # input layer

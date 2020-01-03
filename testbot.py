@@ -5,10 +5,6 @@ from __future__ import print_function
 from model import Sc2Network
 from data_reader import getUnitsData
 
-from tensorflow import keras
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
-from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 
 from pysc2.agents import base_agent
@@ -47,6 +43,7 @@ class TestAgent(base_agent.BaseAgent):
 
         X = self._get_unit_data(obs)
         y = self.model.predict(X)
+        print(y)
         function_id, args = self._translateOutputToAction(y, avb)
         """
         function_id = np.random.choice(avb)
@@ -63,6 +60,8 @@ class TestAgent(base_agent.BaseAgent):
 
         if a[1] == 1:
             f_id = 4
+            args = [[np.random.randint(0, size) for size in arg.sizes]
+                    for arg in self.action_spec.functions[f_id].args]
         elif a[2] == 1:
             f_id = 331
         elif a[3] == 1:
@@ -77,9 +76,8 @@ class TestAgent(base_agent.BaseAgent):
 
         if f_id == 0:
             args = []
-        else:
+        elif f_id > 4:
             args = [[1], y[1][0]]
-
         return f_id, args
 
     def _get_unit_data(self, obs):
@@ -95,4 +93,5 @@ class TestAgent(base_agent.BaseAgent):
         x += getUnitsData(enemies, 11, True)
         x.append(self.gameloop)
         x.append(len(marines))
+        print(x)
         return np.asarray([x], dtype=np.dtype(np.float32))

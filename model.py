@@ -2,9 +2,10 @@ import numpy
 from sklearn.model_selection import train_test_split
 
 from data_reader import *
+
 from tensorflow import keras
 from tensorflow.keras.models import Model, load_model, save_model
-from tensorflow.keras.layers import Dense, Input
+from tensorflow.keras.layers import Dense, Input, Dropout, BatchNormalization
 
 
 class Sc2Network():
@@ -19,10 +20,13 @@ class Sc2Network():
     @staticmethod
     def _create_model():
         inp = Input((107,))
-        d1 = Dense(128, activation='relu')(inp)
-        d2 = Dense(128, activation='relu')(d1)
-        ld1 = Dense(64, activation='relu')(d2)
-        rd1 = Dense(64, activation='relu')(d2)
+        BNorm = BatchNormalization()(inp)
+        d1 = Dense(256, activation='relu')(BNorm)
+        drop1 = Dropout(0.1)(d1)
+        d2 = Dense(128, activation='relu')(drop1)
+        drop2 = Dropout(0.1)(d2)
+        ld1 = Dense(64, activation='relu')(drop2)
+        rd1 = Dense(64, activation='relu')(drop2)
         lOut = Dense(6, activation='softmax', name="actionLayer")(ld1)
         rOut = Dense(2, activation='relu', name="CoordLayer")(rd1)
         model = Model(inputs=[inp], outputs=[lOut, rOut])
@@ -47,5 +51,5 @@ class Sc2Network():
 
 if __name__ == "__main__":
     nn = Sc2Network()
-    nn.train_model(epochs=5, batch_size=128, verbose=1, min_score=25)
+    nn.train_model(epochs=5, batch_size=128, verbose=1, min_score=35)
     nn.save_model('model.h5')

@@ -34,7 +34,7 @@ class TestAgent(base_agent.BaseAgent):
                 "This agent requires the feature_units observation. Use flag '--use_feature_units' to enable feature units")
         self.gameloop = 0
         self.model = Sc2Network("model.h5")
-        #self.model.model.summary()
+        # self.model.model.summary()
 
     def step(self, obs):
         super(TestAgent, self).step(obs)
@@ -56,19 +56,19 @@ class TestAgent(base_agent.BaseAgent):
 
     def _translateOutputToAction(self, y, avb_actions):
         f_id = 0
-        a = y[0][0]
+        a = np.argmax(y[0][0])
 
-        if a[1] == 1:
+        if a == 0:
             f_id = 4
             args = [[np.random.randint(0, size) for size in arg.sizes]
                     for arg in self.action_spec.functions[f_id].args]
-        elif a[2] == 1:
+        elif a == 1:
             f_id = 331
-        elif a[3] == 1:
+        elif a == 2:
             f_id = 333
-        elif a[4] == 1:
+        elif a == 3:
             f_id = 567
-        elif a[5] == 1:
+        elif a == 4:
             f_id = 12
 
         if f_id not in avb_actions:
@@ -77,7 +77,7 @@ class TestAgent(base_agent.BaseAgent):
         if f_id == 0:
             args = []
         elif f_id > 4:
-            args = [[1], y[1][0]]
+            args = [[1], [y[1][0][0] * 44, y[1][0][1] * 36]]
         return f_id, args
 
     def _get_unit_data(self, obs):

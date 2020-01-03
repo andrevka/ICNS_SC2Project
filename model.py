@@ -24,11 +24,10 @@ class Sc2Network():
         d1 = Dense(256, activation='relu')(BNorm)
         drop1 = Dropout(0.1)(d1)
         d2 = Dense(128, activation='relu')(drop1)
-        drop2 = Dropout(0.1)(d2)
-        ld1 = Dense(64, activation='relu')(drop2)
-        rd1 = Dense(64, activation='relu')(drop2)
-        lOut = Dense(6, activation='softmax', name="actionLayer")(ld1)
-        rOut = Dense(2, activation='relu', name="CoordLayer")(rd1)
+        ld1 = Dense(64, activation='relu')(d2)
+        rd1 = Dense(64, activation='relu')(d2)
+        lOut = Dense(5, activation='softmax', name="actionLayer")(ld1)
+        rOut = Dense(2, activation='sigmoid', name="CoordLayer")(rd1)
         model = Model(inputs=[inp], outputs=[lOut, rOut])
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy', 'accuracy'])
         return model
@@ -51,5 +50,5 @@ class Sc2Network():
 
 if __name__ == "__main__":
     nn = Sc2Network()
-    nn.train_model(epochs=5, batch_size=128, verbose=1, min_score=35)
+    nn.train_model(epochs=5, batch_size=128, verbose=1, min_score=30)
     nn.save_model('model.h5')

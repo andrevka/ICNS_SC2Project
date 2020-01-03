@@ -46,31 +46,30 @@ def get_training_data_from_file(file, scoreThreshold):
                 continue
 
             for iteration in game:
-
-                x.append(getInputDataFromIteration(iteration))
-
                 # OUTPUTS
-                actions = [0] * 6
+                actions = [0] * 5
                 a = iteration['actions']
                 if len(a) > 0:
                     action_id = a[0]['ability_id']
-                    if action_id == 0:  # Do nothing
+                    if action_id == 4:  # Select control group
                         actions[0] = 1
-                    elif action_id == 4:  # Select control group
-                        actions[1] = 1
                     elif action_id == 16:  # Move
-                        actions[2] = 1
+                        actions[1] = 1
                     elif action_id == 17:  # Move patrol
-                        actions[3] = 1
+                        actions[2] = 1
                     elif action_id == 18:  # Move hold position
-                        actions[4] = 1
+                        actions[3] = 1
                     elif action_id == 23:  # attack
-                        actions[5] = 1
-                    y2.append(np.asarray([a[0]['x'], a[0]['y']], dtype=np.dtype(np.float32)))
+                        actions[4] = 1
+                    else:
+                        continue
+                    y2.append(np.asarray([a[0]['x']/44, a[0]['y']/36], dtype=np.dtype(np.float32)))
+
                 else:
-                    actions[0] = 1
-                    y2.append(np.asarray([0, 0], dtype=np.dtype(np.float32)))
+                    continue
                 y.append(actions)
+                # Inputs
+                x.append(getInputDataFromIteration(iteration))
 
         x = np.asarray(x)
         y = np.asarray(y)

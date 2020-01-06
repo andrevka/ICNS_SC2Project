@@ -2,18 +2,36 @@ import json
 import numpy as np
 
 
-# calculates a score based on the last game_loop
-# TODO: improve score calculation
+# Calculates the game score
 def evaluate(game):
-    lastIter = game[-1]
-    pUnits = 0
-    eUnits = 0
-    for unit in lastIter['units']:
-        if unit['alliance'] == 1:
-            pUnits += 1
-        else:
-            eUnits += 1
-    return 5 * (10 - eUnits) #+ 1 * pUnits
+    score = 0
+    pUnits_prev = 9
+    eUnits_prev = 10
+    for frame in game:
+        score_gained, pUnits_prev, eUnits_prev = evaluate_frame(frame, pUnits_prev, eUnits_prev)
+        score += score_gained
+    return score
+
+def evaluate_frame(frame, pUnits_prev, eUnits_prev):
+        score_gained = 0
+        pUnits = 0
+        eUnits = 0
+        for unit in frame['units']:
+            if unit['alliance'] == 1:
+                pUnits += 1
+            else:
+                eUnits += 1
+        #5 point for every killed enemy
+        #Prevents losing points for respawning enemies
+        if eUnits < eUnits_prev:
+            score_gained += 5*(eUnits_prev - eUnits)
+        #-1 point for every marine lost
+        #Prevents gaining points for extra marines received
+        if pUnits < pUnits_prev:
+            score_gained += pUnits - pUnits_prev
+        pUnits_prev = pUnits
+        eUnits_prev = eUnits
+        return score_gained, pUnits, eUnits
 
 
 # input layer

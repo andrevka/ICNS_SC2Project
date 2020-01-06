@@ -33,6 +33,9 @@ class TestAgent(base_agent.BaseAgent):
             raise Exception(
                 "This agent requires the feature_units observation. Use flag '--use_feature_units' to enable feature units")
         self.gameloop = 0
+        self.score = 0
+        self.pUnits = 9
+        self.eUnits = 10
         self.model = Sc2Network("model.h5")
         # self.model.model.summary()
 
@@ -52,6 +55,8 @@ class TestAgent(base_agent.BaseAgent):
                 for arg in self.action_spec.functions[function_id].args]
         """
         print(function_id, args)
+        score_gained, self.pUnits, self.eUnits = evaluate_step(obs, self.pUnits, self.eUnits)
+        self.score += score_gained
         return actions.FunctionCall(function_id, args)
 
     def _translateOutputToAction(self, y, avb_actions):
@@ -95,3 +100,33 @@ class TestAgent(base_agent.BaseAgent):
         x.append(len(marines))
         print(x)
         return np.asarray([x], dtype=np.dtype(np.float32))
+    #Writes the score to a file
+    #Resets some values to default
+    def reset(self):
+        super(TestAgent, self).reset()
+        with open("scores.txt", "a") as f:
+            f.write(str(self.score) + '\n')
+        self.score = 0
+        self.pUnits = 9
+        self.eUnits = 10
+            
+def evaluate_step(obs, pUnits_prev, eUnits_prev):
+    score_gained = 0
+    marines = [unit for unit in obs.observation.feature_units
+               if unit.alliance == _PLAYER_SELF]
+    enemies = [unit for unit in obs.observation.feature_units
+               if unit.alliance == _PLAYER_ENEMY]
+    pUnits = len(marines)
+    eUnits = len(enemies)
+    #5 point for every killed enemy
+    #Prevents losing points for respawning enemies
+    if eUnits < eUnits_prev:
+        score_gained += 5*(eUnits_prev - eUnits)
+    #-1 point for every marine lost
+    #Prevents gaining points for extra marines received
+    if pUnits < pUnits_prev:
+        score_gained += pUnits - pUnits_prev
+    pUnits_prev = pUnits
+    eUnits_prev = eUnits
+    return score_gained, pUnits, eUnits
+

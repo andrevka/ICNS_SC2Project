@@ -32,7 +32,6 @@ class TestAgent(base_agent.BaseAgent):
         if "feature_units" not in obs_spec:
             raise Exception(
                 "This agent requires the feature_units observation. Use flag '--use_feature_units' to enable feature units")
-        self.gameloop = 0
         self.score = 0
         self.pUnits = 9
         self.eUnits = 10
@@ -41,7 +40,6 @@ class TestAgent(base_agent.BaseAgent):
 
     def step(self, obs):
         super(TestAgent, self).step(obs)
-        self.gameloop += 1
         avb = obs.observation.available_actions
 
         X = self._get_unit_data(obs)
@@ -96,12 +94,13 @@ class TestAgent(base_agent.BaseAgent):
 
         x += getUnitsData(marines, 10, True)
         x += getUnitsData(enemies, 11, True)
-        x.append(self.gameloop)
+        x.append(self.steps)
         x.append(len(marines))
         print(x)
         return np.asarray([x], dtype=np.dtype(np.float32))
-    #Writes the score to a file
-    #Resets some values to default
+
+    # Writes the score to a file
+    # Resets some values to default
     def reset(self):
         super(TestAgent, self).reset()
         with open("scores.txt", "a") as f:
@@ -109,7 +108,8 @@ class TestAgent(base_agent.BaseAgent):
         self.score = 0
         self.pUnits = 9
         self.eUnits = 10
-            
+
+
 def evaluate_step(obs, pUnits_prev, eUnits_prev):
     score_gained = 0
     marines = [unit for unit in obs.observation.feature_units
@@ -118,15 +118,14 @@ def evaluate_step(obs, pUnits_prev, eUnits_prev):
                if unit.alliance == _PLAYER_ENEMY]
     pUnits = len(marines)
     eUnits = len(enemies)
-    #5 point for every killed enemy
-    #Prevents losing points for respawning enemies
+    # 5 point for every killed enemy
+    # Prevents losing points for respawning enemies
     if eUnits < eUnits_prev:
-        score_gained += 5*(eUnits_prev - eUnits)
-    #-1 point for every marine lost
-    #Prevents gaining points for extra marines received
+        score_gained += 5 * (eUnits_prev - eUnits)
+    # -1 point for every marine lost
+    # Prevents gaining points for extra marines received
     if pUnits < pUnits_prev:
         score_gained += pUnits - pUnits_prev
     pUnits_prev = pUnits
     eUnits_prev = eUnits
     return score_gained, pUnits, eUnits
-

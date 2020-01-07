@@ -40,13 +40,17 @@ def evaluate_frame(frame, pUnits_prev, eUnits_prev):
 # 106: game_loop
 # 107: army_count
 
-
+#y1
 # 0: Do nothing
 # 1: select_control_group (4)
 # 2: Move (16)
 # 3: MovePatrol (17)
 # 4: MoveHoldPosition (18)
 # 5: attack (23)
+
+#y2
+# 0: x
+# 1: y
 
 def get_training_data_from_file(file, scoreThreshold):
     with open(file) as json_file:

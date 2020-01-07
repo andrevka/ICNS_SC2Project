@@ -60,27 +60,33 @@ class TestAgent(base_agent.BaseAgent):
     def _translateOutputToAction(self, y, avb_actions):
         f_id = 0
         a = np.argmax(y[0][0])
-
+        args = [[int(y[2][0][0] * 9)]]
         if a == 0:
-            f_id = 4
-            args = [[np.random.randint(0, size) for size in arg.sizes]
-                    for arg in self.action_spec.functions[f_id].args]
+            f_id = 2
+            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
         elif a == 1:
-            f_id = 331
+            f_id = 3
+            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
+            args.append([y[1][0][2] * 79, y[1][0][3] * 64])
         elif a == 2:
-            f_id = 333
+            f_id = 4
+            args.append([int(y[2][0][1] * 9)])
         elif a == 3:
-            f_id = 567
+            f_id = 331
+            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
         elif a == 4:
+            f_id = 333
+            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
+        elif a == 5:
             f_id = 12
+            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
 
         if f_id not in avb_actions:
             f_id = 0
 
         if f_id == 0:
             args = []
-        elif f_id > 4:
-            args = [[1], [y[1][0][0] * 44, y[1][0][1] * 36]]
+
         return f_id, args
 
     def _get_unit_data(self, obs):
@@ -96,7 +102,7 @@ class TestAgent(base_agent.BaseAgent):
         x += getUnitsData(enemies, 11, True)
         x.append(self.steps)
         x.append(len(marines))
-        print(x)
+        x.append(len(enemies))
         return np.asarray([x], dtype=np.dtype(np.float32))
 
     # Writes the score to a file

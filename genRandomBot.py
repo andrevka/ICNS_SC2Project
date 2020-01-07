@@ -24,11 +24,9 @@ class GenRandomAgent(base_agent.BaseAgent):
         if "feature_units" not in obs_spec:
             raise Exception(
                 "This agent requires the feature_units observation. Use flag '--use_feature_units' to enable feature units")
-        self.writeThreshold = 1000
-        self.newGame()
-
-    def newGame(self):
-        self.loops = []
+        self.writeEvery = 1000
+        self.fileN = -1
+        self.newFile()
 
     def step(self, obs):
         super(GenRandomAgent, self).step(obs)
@@ -44,26 +42,37 @@ class GenRandomAgent(base_agent.BaseAgent):
         units = []
         for i in obs.observation.feature_units:
             units.append(
-                {"hp": int(i["health"]), "x": int(i["x"]), "y": int(i["y"]), "alliance": int(i["alliance"]), "type": int(i['unit_type']),
+                {"hp": int(i["health"]), "x": int(i["x"]), "y": int(i["y"]), "alliance": int(i["alliance"]),
+                 "type": int(i['unit_type']),
                  "is_selected": int(i["is_selected"]), "oID0": int(i["order_id_0"]), "oID1": int(i["order_id_1"]),
-                 "active:": int(i["active"])})
+                 "active": int(i["active"])})
         s["units"] = units
         s["game_loop"] = int(self.steps)
         marines = len([unit for unit in obs.observation.feature_units
-                   if unit.alliance == _PLAYER_SELF])
+                       if unit.alliance == _PLAYER_SELF])
         enemies = len([unit for unit in obs.observation.feature_units
-                   if unit.alliance == _PLAYER_ENEMY])
+                       if unit.alliance == _PLAYER_ENEMY])
         s["army_count"] = marines
         s["zerg_count"] = enemies
         self.loops.append(s)
 
     def reset(self):
         super(GenRandomAgent, self).reset()
-        if self.episodes == self.writeThreshold:
+        if self.episodes == 0:
+            return
+
+        self.games.append(self.loops)
+        self.loops = []
+        if self.episodes % self.writeEvery == 0:
             self.writeToFile()
-            print("DONE")
-            raise RuntimeError
+            self.newFile()
+
+
+    def newFile(self):
+        self.loops = []
+        self.games = []
+        self.fileN += 1
 
     def writeToFile(self):
-        with open("data.txt", "w") as outfile:
-            json.dump(self.loops, outfile)
+        with open("data_" + str(self.fileN) + ".txt", "w") as outfile:
+            json.dump(self.games, outfile)

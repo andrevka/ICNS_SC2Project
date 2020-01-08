@@ -62,8 +62,8 @@ def evaluate_frame(frame, pUnits_prev, eUnits_prev):
 def get_training_data_from_file(scoreThreshold, count):
     x = []
     y = []
-    y2 = []
-    y3 = []
+    x2 = [[], [], [], [], [], []]
+    y2 = [[], [], [], [], [], []]
     for f in range(count):
         with open("replays/data_" + str(f) + ".txt") as json_file:
             data = json.load(json_file)
@@ -79,53 +79,49 @@ def get_training_data_from_file(scoreThreshold, count):
                     # OUTPUTS
                     actions = [0] * 6
                     a = iteration['fID']
-                    args = []
-
+                    k = 0
                     if a == 2:  # select point
-                        actions[0] = 1
+                        actions[k] = 1
+                        y2[k].append([iteration["fArgs"][0][0] / 9, iteration["fArgs"][1][0] / 79,
+                                      iteration["fArgs"][1][1] / 64])
                     elif a == 3:  # select_rect
-                        actions[1] = 1
+                        k = 1
+                        actions[k] = 1
+                        y2[k].append([iteration["fArgs"][0][0] / 9, iteration["fArgs"][1][0] / 79,
+                                      iteration["fArgs"][1][1] / 64, iteration["fArgs"][2][0] / 79,
+                                      iteration["fArgs"][2][1] / 64])
                     elif a == 4:  # select_control_group
-                        actions[2] = 1
+                        k = 2
+                        actions[k] = 1
+                        y2[k].append([iteration["fArgs"][0][0] / 9, iteration["fArgs"][1][0] / 9])
                     elif a == 331:  # Move
-                        actions[3] = 1
+                        k = 3
+                        actions[k] = 1
+                        y2[k].append([iteration["fArgs"][0][0] / 9, iteration["fArgs"][1][0] / 79,
+                                      iteration["fArgs"][1][1] / 64])
                     elif a == 333:  # attack
-                        actions[4] = 1
+                        k = 4
+                        actions[k] = 1
+                        y2[k].append([iteration["fArgs"][0][0] / 9, iteration["fArgs"][1][0] / 79,
+                                      iteration["fArgs"][1][1] / 64])
                     elif a == 12:  # attack
-                        actions[5] = 1
+                        k = 5
+                        actions[k] = 1
+                        y2[k].append([iteration["fArgs"][0][0] / 9, iteration["fArgs"][1][0] / 79,
+                                      iteration["fArgs"][1][1] / 64])
                     else:
                         continue
 
-                    a_count = iteration['army_count'] + 0.1
-                    if a == 4:
-                        coords = [0, 0, 0, 0]
-                        args = [iteration["fArgs"][0][0] / 9, iteration["fArgs"][1][0] / 9]
-                    else:
-                        coords = []
-                        args = [iteration["fArgs"][0][0] / 9, 0]
-                        for i in iteration["fArgs"][1:]:
-                            coords += i
-
-                        while len(coords) < 4:
-                            coords.append(0)
-
-                        # normalizing
-                        coords[0] = coords[0] / 79
-                        coords[1] = coords[1] / 64
-                        coords[2] = coords[2] / 79
-                        coords[3] = coords[3] / 64
-
-                    y3.append(args)
-                    y2.append(coords)
                     y.append(actions)
                     # Inputs
                     x.append(getInputDataFromIteration(iteration))
+                    x2[k].append(getInputDataFromIteration(iteration))
 
     x = np.asarray(x)
     y = np.asarray(y)
+    x2 = np.asarray(x2)
     y2 = np.asarray(y2)
-    y3 = np.asarray(y3)
-    return x, y, y2, y3
+    return x, y, x2, y2
 
 
 def getInputDataFromIteration(iteration):

@@ -35,7 +35,7 @@ class TestAgent(base_agent.BaseAgent):
         self.score = 0
         self.pUnits = 9
         self.eUnits = 10
-        self.model = Sc2Network("model.h5")
+        self.model = Sc2Network("model")
         # self.model.model.summary()
 
     def step(self, obs):
@@ -44,7 +44,6 @@ class TestAgent(base_agent.BaseAgent):
 
         X = self._get_unit_data(obs)
         y = self.model.predict(X)
-        print(y)
         function_id, args = self._translateOutputToAction(y, avb)
         """
         function_id = np.random.choice(avb)
@@ -52,37 +51,13 @@ class TestAgent(base_agent.BaseAgent):
         args = [[np.random.randint(0, size) for size in arg.sizes]
                 for arg in self.action_spec.functions[function_id].args]
         """
-        print(function_id, args)
+        #print(function_id, args)
         score_gained, self.pUnits, self.eUnits = evaluate_step(obs, self.pUnits, self.eUnits)
         self.score += score_gained
         return actions.FunctionCall(function_id, args)
 
     def _translateOutputToAction(self, y, avb_actions):
-        f_id = 0
-        a = np.argmax(y[0][0])
-        args = [[int(y[2][0][0] * 9)]]
-        if max(y[0][0]) < 0.2:
-            f_id = 0
-            args = []
-        elif a == 0:
-            f_id = 2
-            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
-        elif a == 1:
-            f_id = 3
-            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
-            args.append([y[1][0][2] * 79, y[1][0][3] * 64])
-        elif a == 2:
-            f_id = 4
-            args.append([int(y[2][0][1] * 9)])
-        elif a == 3:
-            f_id = 331
-            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
-        elif a == 4:
-            f_id = 333
-            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
-        elif a == 5:
-            f_id = 12
-            args.append([y[1][0][0] * 79, y[1][0][1] * 64])
+        f_id, args = y
 
         if f_id not in avb_actions:
             f_id = 0
@@ -95,7 +70,7 @@ class TestAgent(base_agent.BaseAgent):
     def _get_unit_data(self, obs):
         x = []
         # adding unit info
-        print("--------------------------------")
+        #print("--------------------------------")
         marines = [unit for unit in obs.observation.feature_units
                    if unit.alliance == _PLAYER_SELF]
         enemies = [unit for unit in obs.observation.feature_units

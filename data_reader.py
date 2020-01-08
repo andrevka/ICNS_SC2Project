@@ -59,77 +59,79 @@ def evaluate_frame(frame, pUnits_prev, eUnits_prev):
 # n1
 # n2
 
-def get_training_data_from_file(file, scoreThreshold):
-    with open(file) as json_file:
-        data = json.load(json_file)
-        x = []
-        y = []
-        y2 = []
-        y3 = []
-        for game in data:
-            # some replays seemed to be bugged
+def get_training_data_from_file(scoreThreshold, count):
+    x = []
+    y = []
+    y2 = []
+    y3 = []
+    for f in range(count):
+        with open("replays/data_" + str(f) + ".txt") as json_file:
+            data = json.load(json_file)
 
-            score = evaluate(game)
-            if score <= scoreThreshold:
-                continue
+            for game in data:
+                # some replays seemed to be bugged
 
-            for iteration in game:
-                # OUTPUTS
-                actions = [0] * 6
-                a = iteration['fID']
-                args = []
-
-                if a == 2:  # select point
-                    actions[0] = 1
-                elif a == 3:  # select_rect
-                    actions[1] = 1
-                elif a == 4:  # select_control_group
-                    actions[2] = 1
-                elif a == 331:  # Move
-                    actions[3] = 1
-                elif a == 333:  # attack
-                    actions[4] = 1
-                elif a == 12:  # attack
-                    actions[5] = 1
-                else:
+                score = evaluate(game)
+                if score <= scoreThreshold:
                     continue
 
-                a_count = iteration['army_count'] + 0.1
-                if a == 4:
-                    coords = [0,0,0,0]
-                    args = [iteration["fArgs"][0][0]/9, iteration["fArgs"][1][0]/9]
-                else:
-                    coords = []
-                    args = [iteration["fArgs"][0][0]/9, 0]
-                    for i in iteration["fArgs"][1:]:
-                        coords += i
+                for iteration in game:
+                    # OUTPUTS
+                    actions = [0] * 6
+                    a = iteration['fID']
+                    args = []
 
-                    while len(coords) < 4:
-                        coords.append(0)
+                    if a == 2:  # select point
+                        actions[0] = 1
+                    elif a == 3:  # select_rect
+                        actions[1] = 1
+                    elif a == 4:  # select_control_group
+                        actions[2] = 1
+                    elif a == 331:  # Move
+                        actions[3] = 1
+                    elif a == 333:  # attack
+                        actions[4] = 1
+                    elif a == 12:  # attack
+                        actions[5] = 1
+                    else:
+                        continue
 
-                    # normalizing
-                    coords[0] = coords[0] / 79
-                    coords[1] = coords[1] / 64
-                    coords[2] = coords[2] / 79
-                    coords[3] = coords[3] / 64
+                    a_count = iteration['army_count'] + 0.1
+                    if a == 4:
+                        coords = [0, 0, 0, 0]
+                        args = [iteration["fArgs"][0][0] / 9, iteration["fArgs"][1][0] / 9]
+                    else:
+                        coords = []
+                        args = [iteration["fArgs"][0][0] / 9, 0]
+                        for i in iteration["fArgs"][1:]:
+                            coords += i
 
-                y3.append(args)
-                y2.append(coords)
-                y.append(actions)
-                # Inputs
-                x.append(getInputDataFromIteration(iteration))
+                        while len(coords) < 4:
+                            coords.append(0)
 
-        x = np.asarray(x)
-        y = np.asarray(y)
-        y2 = np.asarray(y2)
-        y3 = np.asarray(y3)
-        return x, y, y2, y3
+                        # normalizing
+                        coords[0] = coords[0] / 79
+                        coords[1] = coords[1] / 64
+                        coords[2] = coords[2] / 79
+                        coords[3] = coords[3] / 64
+
+                    y3.append(args)
+                    y2.append(coords)
+                    y.append(actions)
+                    # Inputs
+                    x.append(getInputDataFromIteration(iteration))
+
+    x = np.asarray(x)
+    y = np.asarray(y)
+    y2 = np.asarray(y2)
+    y3 = np.asarray(y3)
+    return x, y, y2, y3
 
 
 def getInputDataFromIteration(iteration):
     pUnits = _getUnitsOnSide(iteration['units'], 1)
     eUnits = _getUnitsOnSide(iteration['units'], 2)
-    frameInfo = getUnitsData(pUnits, 10, False) + getUnitsData(eUnits, 11, False)
+    frameInfo = getUnitsData(pUnits, 11, False) + getUnitsData(eUnits, 11, False)
     frameInfo.append(iteration["game_loop"])
     frameInfo.append(iteration["army_count"])
     frameInfo.append(iteration["zerg_count"])
@@ -165,5 +167,6 @@ def _putUnitDataIntoListTrain(unit):
 
 
 def _putUnitDataIntoListInAI(unit):
-    return [unit['health'], unit['x'], unit['y'], unit['is_selected'], unit['active'], unit['unit_type'], unit['order_id_0'],
+    return [unit['health'], unit['x'], unit['y'], unit['is_selected'], unit['active'], unit['unit_type'],
+            unit['order_id_0'],
             unit['order_id_1']]

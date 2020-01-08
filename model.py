@@ -19,7 +19,7 @@ class Sc2Network():
 
     @staticmethod
     def _create_model():
-        inp = Input((171,))
+        inp = Input((179,))
         BNorm = BatchNormalization()(inp)
         d1 = Dense(256, activation='relu')(BNorm)
         drop1 = Dropout(0.1)(d1)
@@ -43,7 +43,7 @@ class Sc2Network():
 
     def train_model(self, dataFile='replays/data.txt', epochs=5, batch_size=32, min_score=25,
                     verbose=0):
-        X, y1, y2, y3 = get_training_data_from_file(dataFile, min_score)
+        X, y1, y2, y3 = get_training_data_from_file(min_score, 15)
         X_train, X_test, y1_train, y1_test, y2_train, y2_test, y3_train, y3_test = train_test_split(X, y1, y2, y3)
         y_train = [np.asarray(y1_train), np.asarray(y2_train), np.asarray(y3_train)]
         y_test = [np.asarray(y1_test), np.asarray(y2_test), np.asarray(y3_test)]
@@ -59,5 +59,5 @@ class Sc2Network():
 
 if __name__ == "__main__":
     nn = Sc2Network()
-    nn.train_model(epochs=5, batch_size=128, verbose=1, min_score=0)
+    nn.train_model(epochs=5, batch_size=128, verbose=1, min_score=60)
     nn.save_model('model.h5')

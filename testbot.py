@@ -61,7 +61,10 @@ class TestAgent(base_agent.BaseAgent):
         f_id = 0
         a = np.argmax(y[0][0])
         args = [[int(y[2][0][0] * 9)]]
-        if a == 0:
+        if max(y[0][0]) < 0.2:
+            f_id = 0
+            args = []
+        elif a == 0:
             f_id = 2
             args.append([y[1][0][0] * 79, y[1][0][1] * 64])
         elif a == 1:
@@ -98,7 +101,7 @@ class TestAgent(base_agent.BaseAgent):
         enemies = [unit for unit in obs.observation.feature_units
                    if unit.alliance == _PLAYER_ENEMY]
 
-        x += getUnitsData(marines, 10, True)
+        x += getUnitsData(marines, 11, True)
         x += getUnitsData(enemies, 11, True)
         x.append(self.steps)
         x.append(len(marines))

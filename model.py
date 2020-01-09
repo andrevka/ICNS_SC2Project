@@ -28,13 +28,13 @@ class Sc2Network():
             self._create_arg_model_12()
             self._create_arg_model_331()
 
-    @staticmethod
-    def _create_model():
+    # main
+    def _create_model(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
         d1 = Dense(256, activation='relu')(BNorm)
-        #rop1 = Dropout(0.1)(d1)
-        d2 = Dense(256, activation='relu')(d1)
+        drop1 = Dropout(0.1)(d1)
+        d2 = Dense(256, activation='relu')(drop1)
         ld1 = Dense(128, activation='relu')(d2)
         ld2 = Dense(64, activation='relu')(ld1)
         lOut = Dense(6, activation='softmax', name="actionLayer")(ld2)
@@ -42,51 +42,62 @@ class Sc2Network():
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
         return model
 
+    # select point
     def _create_arg_model_2(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
-        d1 = Dense(256, activation='relu')(BNorm)
-        d2 = Dense(128, activation='relu')(d1)
-        d3 = Dense(64, activation='relu')(d2)
+        d1 = Dense(128, activation='relu')(BNorm)
+        drop1 = Dropout(0.1)(d1)
+        d2 = Dense(64, activation='relu')(drop1)
+        d3 = Dense(32, activation='relu')(d2)
         lOut = Dense(3, activation='sigmoid', name="actionLayer")(d3)
         self.aModel2 = Model(inputs=inp, outputs=lOut)
         self.aModel2.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 
+    # select rect
     def _create_arg_model_3(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
-        d1 = Dense(256, activation='relu')(BNorm)
-        d2 = Dense(128, activation='relu')(d1)
-        d3 = Dense(64, activation='relu')(d2)
+        d1 = Dense(128, activation='relu')(BNorm)
+        drop1 = Dropout(0.1)(d1)
+        d2 = Dense(64, activation='relu')(drop1)
+        d3 = Dense(32, activation='relu')(d2)
         lOut = Dense(5, activation='sigmoid', name="actionLayer")(d3)
         self.aModel3 = Model(inputs=inp, outputs=lOut)
         self.aModel3.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 
+    # control group
     def _create_arg_model_4(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
-        d1 = Dense(256, activation='relu')(BNorm)
-        d2 = Dense(128, activation='relu')(d1)
-        d3 = Dense(64, activation='relu')(d2)
-        lOut = Dense(2, activation='sigmoid', name="actionLayer")(d3)
+        d1 = Dense(128, activation='relu')(BNorm)
+        #drop1 = Dropout(0.1)(d1)
+        d2 = Dense(64, activation='relu')(d1)
+        d3 = Dense(32, activation='relu')(d2)
+        lOut = Dense(2, activation='sigmoid')(d3)
         self.aModel4 = Model(inputs=inp, outputs=lOut)
         self.aModel4.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 
+    # attack
     def _create_arg_model_12(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
-        d1 = Dense(256, activation='relu')(BNorm)
-        d2 = Dense(128, activation='relu')(d1)
-        d3 = Dense(64, activation='relu')(d2)
+        d1 = Dense(128, activation='relu')(BNorm)
+        drop1 = Dropout(0.1)(d1)
+        d2 = Dense(64, activation='relu')(drop1)
+        d2 = Dense(64, activation='relu')(d2)
+        d3 = Dense(32, activation='relu')(d2)
         lOut = Dense(3, activation='sigmoid', name="actionLayer")(d3)
         self.aModel12 = Model(inputs=inp, outputs=lOut)
         self.aModel12.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 
+    # move
     def _create_arg_model_331(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
-        d1 = Dense(256, activation='relu')(BNorm)
-        d2 = Dense(128, activation='relu')(d1)
+        d1 = Dense(128, activation='relu')(BNorm)
+        drop1 = Dropout(0.1)(d1)
+        d2 = Dense(128, activation='relu')(drop1)
         d3 = Dense(64, activation='relu')(d2)
         lOut = Dense(3, activation='sigmoid', name="actionLayer")(d3)
         self.aModel331 = Model(inputs=inp, outputs=lOut)
@@ -95,7 +106,7 @@ class Sc2Network():
 
     def train_model(self, epochs=5, batch_size=32, min_score=25,
                     verbose=0):
-        X, y, X2, y2 = get_training_data_from_file(min_score, 15)
+        X, y, X2, y2 = get_training_data_from_file(min_score, 35)
         # Training the main model first
         X_train, X_test, y_train, y_test = train_test_split(X, y)
         self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=verbose)
@@ -104,7 +115,9 @@ class Sc2Network():
         # Training the argument models
         scores = []
         for i, m in enumerate(
-                [self.aModel2, self.aModel3, self.aModel4, self.aModel331, self.aModel331, self.aModel12]):
+                [self.aModel2, self.aModel3, self.aModel4, self.aModel331, None, self.aModel12]):
+            if m is None:
+                continue
             X_train, X_test, y_train, y_test = train_test_split(X2[i], y2[i])
             m.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=verbose)
             scores.append(m.evaluate(X_test, y_test, batch_size=batch_size))
@@ -156,5 +169,5 @@ class Sc2Network():
 
 if __name__ == "__main__":
     nn = Sc2Network()
-    nn.train_model(epochs=5, batch_size=128, verbose=1, min_score=60)
+    nn.train_model(epochs=5, batch_size=128, verbose=1, min_score=64)
     nn.save_model('model')

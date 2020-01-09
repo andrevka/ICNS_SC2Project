@@ -36,6 +36,7 @@ class TestAgent(base_agent.BaseAgent):
         self.pUnits = 9
         self.eUnits = 10
         self.model = Sc2Network("model")
+        print("Setup done!")
         # self.model.model.summary()
 
     def step(self, obs):
@@ -110,6 +111,4 @@ def evaluate_step(obs, pUnits_prev, eUnits_prev):
     # Prevents gaining points for extra marines received
     if pUnits < pUnits_prev:
         score_gained += pUnits - pUnits_prev
-    pUnits_prev = pUnits
-    eUnits_prev = eUnits
     return score_gained, pUnits, eUnits

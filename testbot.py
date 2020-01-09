@@ -65,6 +65,11 @@ class TestAgent(base_agent.BaseAgent):
 
         if f_id == 0:
             args = []
+            return f_id, args
+
+        mSize = self.action_spec.functions[f_id].args[0].sizes[0]
+        if args[0][0] >= mSize:
+            args[0][0] = np.random.randint(0, mSize)
 
         return f_id, args
 

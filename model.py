@@ -32,12 +32,14 @@ class Sc2Network():
     def _create_model(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
-        d1 = Dense(256, activation='relu')(BNorm)
-        drop1 = Dropout(0.1)(d1)
-        d2 = Dense(256, activation='relu')(drop1)
-        ld1 = Dense(128, activation='relu')(d2)
-        ld2 = Dense(64, activation='relu')(ld1)
-        lOut = Dense(6, activation='softmax', name="actionLayer")(ld2)
+        d1 = Dense(512, activation='tanh')(BNorm)
+        drop1 = Dropout(0.25)(d1)
+        d2 = Dense(256, activation='tanh')(drop1)
+        drop2 = Dropout(0.1)(d2)
+        d3 = Dense(128, activation='tanh')(drop2)
+        drop3 = Dropout(0.1)(d3)
+        d4 = Dense(64, activation='tanh')(drop3)
+        lOut = Dense(6, activation='softmax', name="actionLayer")(d4)
         model = Model(inputs=inp, outputs=lOut)
         model.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
         return model
@@ -46,10 +48,10 @@ class Sc2Network():
     def _create_arg_model_2(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
-        d1 = Dense(128, activation='relu')(BNorm)
+        d1 = Dense(128, activation='tanh')(BNorm)
         drop1 = Dropout(0.1)(d1)
-        d2 = Dense(64, activation='relu')(drop1)
-        d3 = Dense(32, activation='relu')(d2)
+        d2 = Dense(64, activation='tanh')(drop1)
+        d3 = Dense(32, activation='tanh')(d2)
         lOut = Dense(3, activation='sigmoid', name="actionLayer")(d3)
         self.aModel2 = Model(inputs=inp, outputs=lOut)
         self.aModel2.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
@@ -58,10 +60,10 @@ class Sc2Network():
     def _create_arg_model_3(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
-        d1 = Dense(128, activation='relu')(BNorm)
+        d1 = Dense(128, activation='tanh')(BNorm)
         drop1 = Dropout(0.1)(d1)
-        d2 = Dense(64, activation='relu')(drop1)
-        d3 = Dense(32, activation='relu')(d2)
+        d2 = Dense(64, activation='tanh')(drop1)
+        d3 = Dense(32, activation='tanh')(d2)
         lOut = Dense(5, activation='sigmoid', name="actionLayer")(d3)
         self.aModel3 = Model(inputs=inp, outputs=lOut)
         self.aModel3.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
@@ -85,9 +87,8 @@ class Sc2Network():
         d1 = Dense(128, activation='relu')(BNorm)
         drop1 = Dropout(0.1)(d1)
         d2 = Dense(64, activation='relu')(drop1)
-        d2 = Dense(64, activation='relu')(d2)
         d3 = Dense(32, activation='relu')(d2)
-        lOut = Dense(3, activation='sigmoid', name="actionLayer")(d3)
+        lOut = Dense(3, activation='sigmoid')(d3)
         self.aModel12 = Model(inputs=inp, outputs=lOut)
         self.aModel12.compile(optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 
@@ -95,14 +96,15 @@ class Sc2Network():
     def _create_arg_model_331(self):
         inp = Input((179,))
         BNorm = BatchNormalization()(inp)
-        d1 = Dense(128, activation='relu')(BNorm)
-        drop1 = Dropout(0.1)(d1)
-        d2 = Dense(128, activation='relu')(drop1)
-        d3 = Dense(64, activation='relu')(d2)
-        lOut = Dense(3, activation='sigmoid', name="actionLayer")(d3)
+        d1 = Dense(256, activation='relu')(BNorm)
+        drop1 = Dropout(0.25)(d1)
+        d2 = Dense(128, activation='tanh')(drop1)
+        drop2 = Dropout(0.1)(d2)
+        d3 = Dense(64, activation='tanh')(drop2)
+        lOut = Dense(3, activation='sigmoid')(d3)
         self.aModel331 = Model(inputs=inp, outputs=lOut)
         self.aModel331.compile(optimizer='adam', loss='mean_squared_error',
-                               metrics=['accuracy', 'accuracy', 'accuracy'])
+                               metrics=['accuracy'])
 
     def train_model(self, epochs=5, batch_size=32, min_score=25,
                     verbose=0):
@@ -163,11 +165,11 @@ class Sc2Network():
             fid = 12
             a = self.aModel12.predict(x)[0]
             a = [[int(a[0] * 9)], [a[1] * 79, a[2] * 64]]
-        #print(a)
+        #print(fid, a)
         return fid, a
 
 
 if __name__ == "__main__":
     nn = Sc2Network()
-    nn.train_model(epochs=5, batch_size=128, verbose=1, min_score=64)
+    nn.train_model(epochs=10, batch_size=64, verbose=1, min_score=65)
     nn.save_model('model')

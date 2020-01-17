@@ -138,7 +138,11 @@ def getInputDataFromIteration(iteration):
 # put_data_method: to read from file(0) or from feature_units(1)
 def getUnitsData(units, size, feature_units=False):
     u = []
+    i=0
     for unit in units:
+        if i>10:
+            break
+        i+=1
         if not feature_units:
             u += _putUnitDataIntoListTrain(unit)
         else:

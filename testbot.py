@@ -24,7 +24,7 @@ def _xy_locs(mask):
     y, x = mask.nonzero()
     return list(zip(x, y))
 
-# TODO: rename the bot
+# TODO: rename bot
 class TestAgent(base_agent.BaseAgent):
 
     def setup(self, obs_spec, action_spec):
@@ -106,8 +106,8 @@ class TestAgent(base_agent.BaseAgent):
         enemies = [unit for unit in obs.observation.feature_units
                    if unit.alliance == _PLAYER_ENEMY]
 
-        x += getUnitsData(marines, 11, True)
-        x += getUnitsData(enemies, 11, True)
+        x += getUnitsData(marines, 9, True)
+        x += getUnitsData(enemies, 10, True)
         x.append(self.steps)
         x.append(len(marines))
         x.append(len(enemies))

@@ -11,6 +11,7 @@ from tensorflow.keras.layers import Dense, Input, Dropout, BatchNormalization
 class Sc2Network():
 
     def __init__(self, file=""):
+        self.inputSize = (155,)
         if file != "":
             self.model = load_model(file + ".h5")
             self.model.summary()
@@ -30,7 +31,7 @@ class Sc2Network():
 
     # main
     def _create_model(self):
-        inp = Input((179,))
+        inp = Input(self.inputSize)
         BNorm = BatchNormalization()(inp)
         d0 = Dense(1024, activation='relu')(BNorm)
         drop0 = Dropout(0.2)(d0)
@@ -48,7 +49,7 @@ class Sc2Network():
 
     # select point
     def _create_arg_model_2(self):
-        inp = Input((179,))
+        inp = Input(self.inputSize)
         BNorm = BatchNormalization()(inp)
         d0 = Dense(256, activation='relu')(BNorm)
         d1 = Dense(128, activation='tanh')(d0)
@@ -61,7 +62,7 @@ class Sc2Network():
 
     # select rect
     def _create_arg_model_3(self):
-        inp = Input((179,))
+        inp = Input(self.inputSize)
         BNorm = BatchNormalization()(inp)
         d0 = Dense(256, activation='relu')(BNorm)
         d1 = Dense(128, activation='tanh')(d0)
@@ -74,7 +75,7 @@ class Sc2Network():
 
     # control group
     def _create_arg_model_4(self):
-        inp = Input((179,))
+        inp = Input(self.inputSize)
         BNorm = BatchNormalization()(inp)
         d0 = Dense(256, activation='relu')(BNorm)
         d1 = Dense(128, activation='relu')(d0)
@@ -87,7 +88,7 @@ class Sc2Network():
 
     # attack
     def _create_arg_model_12(self):
-        inp = Input((179,))
+        inp = Input(self.inputSize)
         BNorm = BatchNormalization()(inp)
         d0 = Dense(256, activation='relu')(BNorm)
         d1 = Dense(128, activation='relu')(d0)
@@ -100,7 +101,7 @@ class Sc2Network():
 
     # move
     def _create_arg_model_331(self):
-        inp = Input((179,))
+        inp = Input(self.inputSize)
         BNorm = BatchNormalization()(inp)
         d0 = Dense(512, activation='relu')(BNorm)
         d1 = Dense(256, activation='relu')(d0)
@@ -115,9 +116,10 @@ class Sc2Network():
 
     def train_model(self, epochs=5, batch_size=32, min_score=25,
                     verbose=0):
-        X, y, X2, y2 = get_training_data_from_file(min_score, 4)
+        X, y, X2, y2 = get_training_data_from_file(min_score, 35)
         # Training the main model first
         X_train, X_test, y_train, y_test = train_test_split(X, y)
+
         self.model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, verbose=verbose)
         score1 = self.model.evaluate(X_test, y_test, batch_size=batch_size)
 

@@ -106,8 +106,8 @@ class TestAgent(base_agent.BaseAgent):
         enemies = [unit for unit in obs.observation.feature_units
                    if unit.alliance == _PLAYER_ENEMY]
 
-        x += getUnitsData(marines, 11, True)
-        x += getUnitsData(enemies, 11, True)
+        x += getUnitsData(marines, 9, True)
+        x += getUnitsData(enemies, 10, True)
         x.append(self.steps)
         x.append(len(marines))
         x.append(len(enemies))

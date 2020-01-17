@@ -114,20 +114,21 @@ def get_training_data_from_file(scoreThreshold, count):
 
                     y.append(actions)
                     # Inputs
-                    x.append(getInputDataFromIteration(iteration))
-                    x2[k].append(getInputDataFromIteration(iteration))
+                    x.append(np.asarray(getInputDataFromIteration(iteration)))
+                    x2[k].append(np.asarray(getInputDataFromIteration(iteration)))
 
     x = np.asarray(x)
     y = np.asarray(y)
     x2 = np.asarray(x2)
     y2 = np.asarray(y2)
+
     return x, y, x2, y2
 
 
 def getInputDataFromIteration(iteration):
     pUnits = _getUnitsOnSide(iteration['units'], 1)
-    eUnits = _getUnitsOnSide(iteration['units'], 2)
-    frameInfo = getUnitsData(pUnits, 11, False) + getUnitsData(eUnits, 11, False)
+    eUnits = _getUnitsOnSide(iteration['units'], 4)
+    frameInfo = getUnitsData(pUnits, 9, False) + getUnitsData(eUnits, 10, False)
     frameInfo.append(iteration["game_loop"])
     frameInfo.append(iteration["army_count"])
     frameInfo.append(iteration["zerg_count"])
@@ -138,17 +139,19 @@ def getInputDataFromIteration(iteration):
 # put_data_method: to read from file(0) or from feature_units(1)
 def getUnitsData(units, size, feature_units=False):
     u = []
-    i=0
+    i = 0
     for unit in units:
-        if i>10:
-            break
-        i+=1
         if not feature_units:
             u += _putUnitDataIntoListTrain(unit)
         else:
             u += _putUnitDataIntoListInAI(unit)
+        i += 1
+        if i >= size:
+            break
+
     for i in range(len(u), 8 * size):
         u.append(0)
+
     return u
 
 
@@ -157,6 +160,9 @@ def _getUnitsOnSide(units, side):
     for i in units:
         if i['alliance'] == side:
             u.append(i)
+        if i['alliance'] == 3 or i['alliance'] == 2:
+            print("WARNING! some units have some other alliance")
+
     return u
 
 

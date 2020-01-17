@@ -30,8 +30,8 @@ class GenRandomAgent(base_agent.BaseAgent):
 
     def step(self, obs):
         super(GenRandomAgent, self).step(obs)
-        function_id = numpy.random.choice(obs.observation.available_actions)
-        args = [[numpy.random.randint(0, size) for size in arg.sizes]
+        function_id = np.random.choice(obs.observation.available_actions)
+        args = [[np.random.randint(0, size) for size in arg.sizes]
                 for arg in self.action_spec.functions[function_id].args]
         self.saveStep(obs, function_id, args)
         return actions.FunctionCall(function_id, args)

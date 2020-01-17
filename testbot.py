@@ -24,7 +24,7 @@ def _xy_locs(mask):
     y, x = mask.nonzero()
     return list(zip(x, y))
 
-# TODO: rename bot
+# TODO: rename bot.
 class TestAgent(base_agent.BaseAgent):
 
     def setup(self, obs_spec, action_spec):

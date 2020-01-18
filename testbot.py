@@ -6,6 +6,7 @@ from model import Sc2Network
 from data_reader import getUnitsData
 
 import numpy as np
+import json
 
 from pysc2.agents import base_agent
 from pysc2.lib import actions, features
@@ -23,7 +24,7 @@ def _xy_locs(mask):
     y, x = mask.nonzero()
     return list(zip(x, y))
 
-
+# TODO: rename bot.
 class TestAgent(base_agent.BaseAgent):
 
     def setup(self, obs_spec, action_spec):
@@ -35,6 +36,9 @@ class TestAgent(base_agent.BaseAgent):
         self.score = 0
         self.pUnits = 9
         self.eUnits = 10
+        self.writeEvery = 200
+        self.fileN = -1
+        self.newFile()
         self.model = Sc2Network("model")
         print("Setup done!")
         # self.model.model.summary()
@@ -48,14 +52,34 @@ class TestAgent(base_agent.BaseAgent):
         function_id, args = self._translateOutputToAction(y, avb)
         """
         function_id = np.random.choice(avb)
-
         args = [[np.random.randint(0, size) for size in arg.sizes]
                 for arg in self.action_spec.functions[function_id].args]
         """
         #print(function_id, args)
         score_gained, self.pUnits, self.eUnits = evaluate_step(obs, self.pUnits, self.eUnits)
         self.score += score_gained
+        self.saveStep(obs, function_id, args)
         return actions.FunctionCall(function_id, args)
+    
+    def saveStep(self, obs, fID, args):
+
+        s = {"fID": int(fID), "fArgs": args}
+        units = []
+        for i in obs.observation.feature_units:
+            units.append(
+                {"hp": int(i["health"]), "x": int(i["x"]), "y": int(i["y"]), "alliance": int(i["alliance"]),
+                 "type": int(i['unit_type']),
+                 "is_selected": int(i["is_selected"]), "oID0": int(i["order_id_0"]), "oID1": int(i["order_id_1"]),
+                 "active": int(i["active"])})
+        s["units"] = units
+        s["game_loop"] = int(self.steps)
+        marines = len([unit for unit in obs.observation.feature_units
+                       if unit.alliance == _PLAYER_SELF])
+        enemies = len([unit for unit in obs.observation.feature_units
+                       if unit.alliance == _PLAYER_ENEMY])
+        s["army_count"] = marines
+        s["zerg_count"] = enemies
+        self.loops.append(s)
 
     def _translateOutputToAction(self, y, avb_actions):
         f_id, args = y
@@ -82,8 +106,8 @@ class TestAgent(base_agent.BaseAgent):
         enemies = [unit for unit in obs.observation.feature_units
                    if unit.alliance == _PLAYER_ENEMY]
 
-        x += getUnitsData(marines, 11, True)
-        x += getUnitsData(enemies, 11, True)
+        x += getUnitsData(marines, 9, True)
+        x += getUnitsData(enemies, 10, True)
         x.append(self.steps)
         x.append(len(marines))
         x.append(len(enemies))
@@ -93,11 +117,25 @@ class TestAgent(base_agent.BaseAgent):
     # Resets some values to default
     def reset(self):
         super(TestAgent, self).reset()
-        with open("scores.txt", "a") as f:
+        with open("scores_test.txt", "a") as f:
             f.write(str(self.score) + '\n')
         self.score = 0
         self.pUnits = 9
         self.eUnits = 10
+        self.games.append(self.loops)
+        self.loops = []
+        if self.episodes % self.writeEvery == 0:
+            self.writeToFile()
+            self.newFile()
+            
+    def newFile(self):
+        self.loops = []
+        self.games = []
+        self.fileN += 1
+
+    def writeToFile(self):
+        with open("data_" + str(self.fileN) + ".txt", "w") as outfile:
+            json.dump(self.games, outfile)
 
 
 def evaluate_step(obs, pUnits_prev, eUnits_prev):
